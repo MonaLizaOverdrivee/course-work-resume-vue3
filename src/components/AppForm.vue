@@ -9,6 +9,7 @@
 
 <script>
 export default {
+  emits: ["submitForm"],
   props: {
     disabled: Boolean
   }

@@ -1,15 +1,17 @@
 <template>
   <div class="card card-w70">
-    <h1>Резюме Nickname</h1>
+    <h1 v-text="summaryBlocks.title"></h1>
     <div class="avatar">
-      <img :src="avatar" />
+      <img :src="summaryBlocks.avatar" />
     </div>
-    <AppSummaryInfo v-for="itm in arr" :key="itm">
+    <AppSummaryInfo v-for="itm in summaryBlocks.blockInfo" :key="itm">
       <template v-slot:[itm.type]>
         {{ itm.text }}
       </template>
     </AppSummaryInfo>
-    <h3>Добавьте первый блок, чтобы увидеть результат</h3>
+    <h3 v-show="!summaryBlocks.hasOwnProperty('blockInfo')">
+      Добавьте первый блок, чтобы увидеть результат
+    </h3>
   </div>
 </template>
 
@@ -17,27 +19,7 @@
 import AppSummaryInfo from "./SummaryInfo";
 
 export default {
-  data: () => ({
-    arr: [
-      { type: "title", text: "Опыт работы" },
-      {
-        type: "text",
-        text: `главный герой американского мультсериала «Рик и Морти», гениальный учёный,
-      изобретатель, атеист (хотя в некоторых сериях он даже молится Богу,
-      однако, каждый раз после чудесного спасения ссылается на удачу и вновь
-      отвергает его существование), алкоголик, социопат, дедушка Морти. На
-      момент начала третьего сезона ему 70 лет[1]. Рик боится пиратов, а его
-      главной слабостью является некий - "Санчезиум". Исходя из того, что
-      существует неограниченное количество вселенных, существует неограниченное
-      количество Риков, герой сериала предположительно принадлежит к измерению
-      С-137. В серии комикcов Рик относится к измерению C-132, а в игре «Pocket
-      Mortys» — к измерению C-123[2]. Прототипом Рика Санчеза является Эмметт
-      Браун, герой кинотрилогии «Назад в будущее»[3].`
-      }
-    ]
-  }),
   props: {
-    avatar: String,
     summaryBlocks: Array
   },
   components: {

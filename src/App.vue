@@ -4,7 +4,11 @@
       <AppSelect v-model="blockType" />
       <AppTextAria v-model="blockValue" />
     </AppForm>
-    <AppSummary :avatar="avatar" :summaryBlocks="summaryBlocks" />
+    <AppSummary
+      :avatar="avatar"
+      :summaryBlocks="summaryBlocks"
+      :titleSummary="titleSummary"
+    />
   </div>
   <div class="container">
     <p>
@@ -20,25 +24,44 @@
 <script>
 import AppComents from "./components/AppComents.vue";
 import AppLoader from "./components/AppLoader";
-import AppForm from "./components/AppForm";
 import AppSummary from "./components/AppSummary";
 import AppSelect from "./components/AppSelect";
+import AppForm from "./components/AppForm";
 import AppTextAria from "./components/AppTextAria";
 
 export default {
   data: () => ({
-    avatar:
-      "https://cdn.dribbble.com/users/5592443/screenshots/14279501/drbl_pop_r_m_rick_4x.png",
     blockType: "title",
     blockValue: "",
     comments: [],
     loading: false,
-    summaryBlocks: []
+    summaryBlocks: {}
   }),
   computed: {
     disableButton() {
       return this.blockValue.length < 4;
+    },
+    requestOptions() {
+      const options = {};
+      if (this.blockType === "avatar" || this.blockType === "title") {
+        options.method = "PATCH";
+        options.key = "summary";
+        options.body = {
+          [this.blockType]: this.blockValue
+        };
+      } else {
+        options.method = "POST";
+        options.key = "summary/blockInfo";
+        options.body = {
+          type: this.blockType,
+          text: this.blockValue
+        };
+      }
+      return options;
     }
+  },
+  mounted() {
+    this.loadSummaryInfo();
   },
   methods: {
     async loadComments() {
@@ -52,17 +75,44 @@ export default {
       this.comments = await response.json();
       this.loading = false;
     },
-    addInfo() {
-      if (this.blockType === "avatar") {
-        this.avatar = this.blockValue;
-        this.blockValue = "";
-      } else {
-        this.summaryBlocks.push({
-          type: this.blockType,
-          text: this.blockValue
-        });
-        this.blockValue = "";
-      }
+    async loadSummaryInfo() {
+      const response = await fetch(
+        "https://vue-summary-default-rtdb.europe-west1.firebasedatabase.app/summary.json",
+        {
+          method: "GET"
+        }
+      );
+      this.summaryBlocks = await response.json();
+    },
+    async addInfo() {
+      await fetch(
+        `https://vue-summary-default-rtdb.europe-west1.firebasedatabase.app/${this.requestOptions.key}.json`,
+        {
+          method: this.requestOptions.method,
+          "Content-Type": "aplication/json",
+          body: JSON.stringify({
+            ...this.requestOptions.body
+          })
+        }
+      );
+      // const firebase = await response.json();
+      // if (this.blockType === "avatar") {
+      //   this.summaryBlocks.avatar = this.blockValue;
+      // } else if (this.blockType === "title") {
+      //   this.summaryBlocks.title = this.blockValue;
+      // } else {
+      //   this.summaryBlocks.blockInfo = {
+      //     [firebase.name]: {
+      //     type: this.blockType,
+      //     text: this.blockValue
+      //     }
+      //   };
+      //   console.log(this.summaryBlocks)
+      // }
+      console.log(this.requestOptions.body);
+      this.loadSummaryInfo();
+      this.blockValue = "";
+      this.blockType = "title";
     }
   },
   components: {
