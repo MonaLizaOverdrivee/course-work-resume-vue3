@@ -4,11 +4,7 @@
       <AppSelect v-model="blockType" />
       <AppTextAria v-model="blockValue" />
     </AppForm>
-    <AppSummary
-      :avatar="avatar"
-      :summaryBlocks="summaryBlocks"
-      :titleSummary="titleSummary"
-    />
+    <AppSummary :summaryBlocks="summaryBlocks" @removeBlockFb="remove" />
   </div>
   <div class="container">
     <p>
@@ -95,24 +91,18 @@ export default {
           })
         }
       );
-      // const firebase = await response.json();
-      // if (this.blockType === "avatar") {
-      //   this.summaryBlocks.avatar = this.blockValue;
-      // } else if (this.blockType === "title") {
-      //   this.summaryBlocks.title = this.blockValue;
-      // } else {
-      //   this.summaryBlocks.blockInfo = {
-      //     [firebase.name]: {
-      //     type: this.blockType,
-      //     text: this.blockValue
-      //     }
-      //   };
-      //   console.log(this.summaryBlocks)
-      // }
-      console.log(this.requestOptions.body);
       this.loadSummaryInfo();
       this.blockValue = "";
       this.blockType = "title";
+    },
+    async remove(id) {
+      fetch(
+        `https://vue-summary-default-rtdb.europe-west1.firebasedatabase.app/summary/blockInfo/${id}.json`,
+        {
+          method: "DELETE"
+        }
+      );
+      delete this.summaryBlocks.blockInfo[id];
     }
   },
   components: {
