@@ -4,7 +4,7 @@
       <AppSelect v-model="blockType" />
       <AppTextAria v-model="blockValue" />
     </AppForm>
-    <AppSummary :summaryBlocks="summaryBlocks" @removeBlockFb="remove" />
+    <AppSummary :summaryBlocks="summaryBlocks" />
   </div>
   <div class="container">
     <p>
@@ -31,29 +31,11 @@ export default {
     blockValue: "",
     comments: [],
     loading: false,
-    summaryBlocks: {}
+    summaryBlocks: []
   }),
   computed: {
     disableButton() {
       return this.blockValue.length < 4;
-    },
-    requestOptions() {
-      const options = {};
-      if (this.blockType === "avatar" || this.blockType === "title") {
-        options.method = "PATCH";
-        options.key = "summary";
-        options.body = {
-          [this.blockType]: this.blockValue
-        };
-      } else {
-        options.method = "POST";
-        options.key = "summary/blockInfo";
-        options.body = {
-          type: this.blockType,
-          text: this.blockValue
-        };
-      }
-      return options;
     }
   },
   mounted() {
@@ -62,47 +44,45 @@ export default {
   methods: {
     async loadComments() {
       this.loading = true;
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/comments?_limit=42",
-        {
-          methods: "GET"
-        }
-      );
+      const response = await fetch(process.env.VUE_APP_API_URL, {
+        methods: "GET"
+      });
       this.comments = await response.json();
       this.loading = false;
     },
     async loadSummaryInfo() {
-      const response = await fetch(
-        "https://vue-summary-default-rtdb.europe-west1.firebasedatabase.app/summary.json",
-        {
-          method: "GET"
-        }
-      );
-      this.summaryBlocks = await response.json();
+      const response = await fetch(process.env.VUE_APP_API_URL, {
+        method: "GET"
+      });
+      const firebaseData = await response.json();
+      if (firebaseData) {
+        this.summaryBlocks = Object.keys(firebaseData).map(key => {
+          return {
+            id: key,
+            ...firebaseData[key]
+          };
+        });
+      } else {
+        this.summaryBlocks = [];
+      }
     },
     async addInfo() {
-      await fetch(
-        `https://vue-summary-default-rtdb.europe-west1.firebasedatabase.app/${this.requestOptions.key}.json`,
-        {
-          method: this.requestOptions.method,
-          "Content-Type": "aplication/json",
-          body: JSON.stringify({
-            ...this.requestOptions.body
-          })
-        }
-      );
-      this.loadSummaryInfo();
+      const response = await fetch(process.env.VUE_APP_API_URL, {
+        method: "POST",
+        "Content-Type": "aplication/json",
+        body: JSON.stringify({
+          type: this.blockType,
+          value: this.blockValue
+        })
+      });
+      const fireBaseResponse = await response.json();
+      this.summaryBlocks.push({
+        id: fireBaseResponse.name,
+        type: this.blockType,
+        value: this.blockValue
+      });
       this.blockValue = "";
       this.blockType = "title";
-    },
-    async remove(id) {
-      fetch(
-        `https://vue-summary-default-rtdb.europe-west1.firebasedatabase.app/summary/blockInfo/${id}.json`,
-        {
-          method: "DELETE"
-        }
-      );
-      delete this.summaryBlocks.blockInfo[id];
     }
   },
   components: {
