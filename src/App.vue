@@ -44,14 +44,14 @@ export default {
   methods: {
     async loadComments() {
       this.loading = true;
-      const response = await fetch(process.env.VUE_APP_API_URL, {
+      const response = await fetch(process.env.VUE_APP_JSONP_URL, {
         methods: "GET"
       });
       this.comments = await response.json();
       this.loading = false;
     },
     async loadSummaryInfo() {
-      const response = await fetch(process.env.VUE_APP_API_URL, {
+      const response = await fetch(process.env.VUE_APP_FIREBASE_URL, {
         method: "GET"
       });
       const firebaseData = await response.json();
@@ -67,7 +67,7 @@ export default {
       }
     },
     async addInfo() {
-      const response = await fetch(process.env.VUE_APP_API_URL, {
+      const response = await fetch(process.env.VUE_APP_FIREBASE_URL, {
         method: "POST",
         "Content-Type": "aplication/json",
         body: JSON.stringify({
